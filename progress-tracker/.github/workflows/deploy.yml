@@ -1,35 +1,53 @@
-name: Deploy to GitHub Pages
+name   名字: Deploy to GitHub Pages (Official)
 
-on:
-  push:
-    branches: [ main ]   # 如果你的默认分支叫 master，就改成 master
+on:   :
+  push:   推动:
+    branches: [ main ]          # 你的默认分支
   workflow_dispatch:
 
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+jobs:   工作:
+  build:
+    runs-on: ubuntu-latest   上运行:ubuntu-latest
+    steps:   步骤:
+      - name: Checkout   -名称：Checkout
+        uses: actions/checkout@v4   用途:行动/ checkout@v4
 
-      - name: Install deps
-        run: npm install
+      - name: Setup Node   —name：设置节点
+        uses: actions/setup-node@v4用途:行动/ setup-node@v4
+        with:   :
+          node-version: 20   节点信息:20
 
-      - name: Build
+      - name: Install deps   —name：安装deps
+        run: npm install   运行：NPM install
+
+      - name: Build with Vite
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-        run: npm run build
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}VITE_SUPABASE_ANON_KEY: ${{秘密。VITE_SUPABASE_ANON_KEY}}
+        run: npm run build   运行：NPM运行build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          force_orphan: true
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:   :
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest   上运行:ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:   步骤:
+      - name: Deploy to GitHub Pages- name：部署到GitHub页面
+        id: deployment
+        uses: actions/deploy-pages@v4
+
